@@ -7,12 +7,21 @@ open Core
 (** certificate chain and private key of the first certificate *)
 type certchain = Cert.t list * Mirage_crypto_pk.Rsa.priv
 
+module Keystore : sig
+  type t
+  val make : (string -> certchain option) -> t
+  val get : t -> string -> certchain option
+  val t_of_sexp : Sexplib.Sexp.t -> t
+  val sexp_of_t : t -> Sexplib.Sexp.t
+end
+
 (** polymorphic variant of own certificates *)
 type own_cert = [
   | `None
   | `Single of certchain
   | `Multiple of certchain list
   | `Multiple_default of certchain * certchain list
+  | `Dynamic of Keystore.t
 ]
 
 type session_cache = SessionID.t -> epoch_data option

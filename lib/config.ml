@@ -5,11 +5,20 @@ open Sexplib.Std
 
 type certchain = Cert.t list * Mirage_crypto_pk.Rsa.priv [@@deriving sexp]
 
+module Keystore = struct
+  type t = string -> certchain option
+  let make f: t = f
+  let get (x: t) hostname = x hostname
+  let t_of_sexp _ = failwith "couldn't convert from sexp!"
+  let sexp_of_t _ = failwith "couldn't convert from t!"
+end
+
 type own_cert = [
   | `None
   | `Single of certchain
   | `Multiple of certchain list
   | `Multiple_default of certchain * certchain list
+  | `Dynamic of Keystore.t
 ] [@@deriving sexp]
 
 type session_cache = SessionID.t -> epoch_data option
@@ -248,6 +257,7 @@ let validate_server config =
     | `Multiple cs              -> cs
     | `Multiple_default (c, cs) -> c :: cs
     | `None                     -> []
+    | `Dynamic _                -> []
   in
   let server_certs =
     List.map (function
