@@ -64,10 +64,8 @@ let agreed_cert certs hostname =
   | `Multiple_default (c, _) , None   -> return c
   | `Multiple cs             , Some h -> match_host h cs
   | `Multiple_default (c, cs), Some h -> match_host h cs ~default:c
-  | `Dynamic k               , Some h -> (
-      match Config.Keystore.get k (Domain_name.to_string h) with
-      | Some c -> return c
-      | None -> fail (`Error `CouldntSelectCertificate)
+  | `Dynamic k               , Some h -> return (
+      Config.Keystore.get k (Domain_name.to_string h)
     )
   | _                                 -> fail (`Error `CouldntSelectCertificate)
 

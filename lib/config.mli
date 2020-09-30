@@ -9,8 +9,8 @@ type certchain = Cert.t list * Mirage_crypto_pk.Rsa.priv
 
 module Keystore : sig
   type t
-  val make : (string -> certchain option) -> t
-  val get : t -> string -> certchain option
+  val make : (string -> certchain) -> t
+  val get : t -> string -> certchain
   val t_of_sexp : Sexplib.Sexp.t -> t
   val sexp_of_t : t -> Sexplib.Sexp.t
 end
