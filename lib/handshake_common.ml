@@ -64,9 +64,11 @@ let agreed_cert certs hostname =
   | `Multiple_default (c, _) , None   -> return c
   | `Multiple cs             , Some h -> match_host h cs
   | `Multiple_default (c, cs), Some h -> match_host h cs ~default:c
-  | `Dynamic k               , Some h -> return (
-      Config.Keystore.get k (Domain_name.to_string h)
-    )
+  | `Dynamic k               , Some h -> (
+      match (Config.Keystore.get k (Domain_name.to_string h)) with
+      | Ok c -> return c
+      | Error err -> fail (`Error (`NoMatchingCertificateFound (err)))
+  )
   | _                                 -> fail (`Error `CouldntSelectCertificate)
 
 let get_secure_renegotiation exts =

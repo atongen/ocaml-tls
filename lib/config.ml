@@ -6,7 +6,7 @@ open Sexplib.Std
 type certchain = Cert.t list * Mirage_crypto_pk.Rsa.priv [@@deriving sexp]
 
 module Keystore = struct
-  type t = string -> certchain
+  type t = string -> (certchain, string) result
   let make f: t = f
   let get (x: t) hostname = x hostname
   let t_of_sexp _ = failwith "couldn't convert from sexp!"
@@ -257,7 +257,10 @@ let validate_server config =
     | `Multiple cs              -> cs
     | `Multiple_default (c, cs) -> c :: cs
     | `None                     -> []
-    | `Dynamic k                -> [Keystore.get k "example.com"]
+    | `Dynamic k                ->
+        match Keystore.get k "example.com" with
+        | Ok c       -> [c]
+        | Error _str -> []
   in
   let server_certs =
     List.map (function
